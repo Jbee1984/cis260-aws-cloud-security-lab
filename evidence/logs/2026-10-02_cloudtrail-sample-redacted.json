@@ -1,0 +1,118 @@
+{
+  "_note": "Two records copied from the first CloudTrail log file delivered to S3 on 2026-10-02 (file ..._20261002T1745Z_...json.gz). Account ID, IP address, access key ID, principal ID and Learner Lab user number are redacted. The original file is kept offline.",
+  "Records": [
+    {
+      "eventVersion": "1.11",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "<REDACTED>",
+        "arn": "arn:aws:sts::<ACCOUNT_ID>:assumed-role/voclabs/user<LAB_ID>=Jeremiah_Banks",
+        "accountId": "<ACCOUNT_ID>",
+        "accessKeyId": "<REDACTED>",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "<REDACTED>",
+            "arn": "arn:aws:iam::<ACCOUNT_ID>:role/voclabs",
+            "accountId": "<ACCOUNT_ID>",
+            "userName": "voclabs"
+          },
+          "attributes": {
+            "creationDate": "2026-10-02T15:28:51Z",
+            "mfaAuthenticated": "false"
+          }
+        }
+      },
+      "eventTime": "2026-10-02T17:40:02Z",
+      "eventSource": "s3.amazonaws.com",
+      "eventName": "GetBucketVersioning",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "<REDACTED_IP>",
+      "userAgent": "[Mozilla/5.0 ... (browser user agent trimmed)",
+      "requestParameters": {
+        "bucketName": "cis260-security-logs-jbanks-20261002",
+        "Host": "cis260-security-logs-jbanks-20261002.s3.us-east-1.amazonaws.com",
+        "versioning": ""
+      },
+      "responseElements": null,
+      "additionalEventData": {
+        "SignatureVersion": "SigV4",
+        "referrer": "https://us-east-1.console.aws.amazon.com/",
+        "CipherSuite": "TLS_AES_128_GCM_SHA256",
+        "bytesTransferredIn": 0,
+        "startTime": 1790962801992,
+        "AuthenticationMethod": "AuthHeader",
+        "endTime": 1790962802007,
+        "x-amz-id-2": "i4oGwyiXHnslhFCiut3/UJJeE0sx7BhzLLRa0WvWmqZVLf6EUee8xwyzKZe/pn62bV6DbwQe2AA=",
+        "httpStatusCode": 200,
+        "bytesTransferredOut": 113
+      },
+      "requestID": "X87GZ6YWHBTAET49",
+      "eventID": "81cdaa8e-2f23-4a85-b216-a09e96e5ea22",
+      "readOnly": true,
+      "resources": [
+        {
+          "accountId": "<ACCOUNT_ID>",
+          "type": "AWS::S3::Bucket",
+          "ARN": "arn:aws:s3:::cis260-security-logs-jbanks-20261002"
+        }
+      ],
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "<ACCOUNT_ID>",
+      "eventCategory": "Management",
+      "tlsDetails": {
+        "tlsVersion": "TLSv1.3",
+        "cipherSuite": "TLS_AES_128_GCM_SHA256",
+        "clientProvidedHostHeader": "cis260-security-logs-jbanks-20261002.s3.us-east-1.amazonaws.com"
+      }
+    },
+    {
+      "eventVersion": "1.11",
+      "userIdentity": {
+        "type": "AssumedRole",
+        "principalId": "<REDACTED>",
+        "arn": "arn:aws:sts::<ACCOUNT_ID>:assumed-role/voclabs/user<LAB_ID>=Jeremiah_Banks",
+        "accountId": "<ACCOUNT_ID>",
+        "accessKeyId": "<REDACTED>",
+        "sessionContext": {
+          "sessionIssuer": {
+            "type": "Role",
+            "principalId": "<REDACTED>",
+            "arn": "arn:aws:iam::<ACCOUNT_ID>:role/voclabs",
+            "accountId": "<ACCOUNT_ID>",
+            "userName": "voclabs"
+          },
+          "attributes": {
+            "creationDate": "2026-10-02T15:28:51Z",
+            "mfaAuthenticated": "false"
+          }
+        }
+      },
+      "eventTime": "2026-10-02T17:40:02Z",
+      "eventSource": "notifications.amazonaws.com",
+      "eventName": "ListManagedNotificationEvents",
+      "awsRegion": "us-east-1",
+      "sourceIPAddress": "<REDACTED_IP>",
+      "userAgent": "Mozilla/5.0 ... (browser user agent trimmed)",
+      "errorCode": "AccessDenied",
+      "requestParameters": {
+        "maxResults": "100",
+        "locale": "en_US"
+      },
+      "responseElements": null,
+      "requestID": "0f060a47-81c0-42ef-b669-bf26e76af539",
+      "eventID": "ffbfed4d-1879-4a5c-9631-3ced766e55af",
+      "readOnly": true,
+      "eventType": "AwsApiCall",
+      "managementEvent": true,
+      "recipientAccountId": "<ACCOUNT_ID>",
+      "eventCategory": "Management",
+      "tlsDetails": {
+        "tlsVersion": "TLSv1.3",
+        "cipherSuite": "TLS_AES_128_GCM_SHA256"
+      },
+      "sessionCredentialFromConsole": "true"
+    }
+  ]
+}
