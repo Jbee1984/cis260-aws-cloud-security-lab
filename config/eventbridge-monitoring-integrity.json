@@ -1,0 +1,11 @@
+{
+  "source": ["aws.events"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["events.amazonaws.com"],
+    "eventName": ["DisableRule", "EnableRule"],
+    "requestParameters": {
+      "name": ["cis260-sg-changes"]
+    }
+  }
+}

@@ -58,6 +58,9 @@ DNS lookups to the VPC's Amazon-provided resolver and instance metadata requests
 | Metadata | **IMDSv2 required** | Requires a session token for metadata requests, which blocks SSRF-style theft of instance credentials |
 | Key pair | none needed | Access is through Session Manager only |
 | Status checks | System, instance, and EBS checks passed | Instance is healthy |
+| Root volume | 15 GiB gp3, **encrypted** (`vol-0bdfdbf9b6d51b67b`) | Checked 2026-10-22 |
+| CPU credits | Standard | A CPU test can't run up surplus-credit charges (TEST-04) |
+| Private IP / interface | 10.26.1.235 / `eni-0e9467ff27cb756eb` | Stays the same across stop/start; used to read Flow Logs |
 
 ## 7. Systems Manager Session Manager
 
@@ -114,7 +117,11 @@ CloudTrail delivers log files to S3 about every 5 minutes, so S3 is the **eviden
 
 **What Flow Logs add:** CloudTrail shows *API calls* (who changed what). Flow Logs show *network traffic* metadata (which addresses and ports talked, and whether the security group accepted or rejected it). They record metadata only — never packet contents.
 
-TODO: confirm which resource the flow log is attached to (the lab subnet, per its name), check the flow-log bucket's Block Public Access, encryption, and versioning, and verify the first log file arrives.
+**Verified 2026-10-22** (`2026-10-22_40_inventory-before.jpg`):
+- The flow log is attached to `subnet-03af475ebf3cc4b29` (`cis260-lab-subnet`), status ACTIVE, delivery SUCCESS.
+- The flow-log bucket has all four Block Public Access settings on, SSE-S3 (AES256), and versioning Enabled.
+- Files arrive in S3 every 5 minutes.
+- Because it is attached to the subnet, it records every network interface in it. TEST-03 used that to see the client's ACCEPT and the target's REJECT for the same packets ([IR-03](../incidents/IR-03-blocked-vs-allowed-traffic.md)).
 
 ## 12. CloudWatch alarm — `cis260-cpu-high`
 
@@ -122,17 +129,23 @@ TODO: confirm which resource the flow log is attached to (the lab subnet, per it
 |---|---|---|
 | Metric | EC2 `CPUUtilization` for `cis260-target` | Standard EC2 metric, no agent needed |
 | Condition | > 10 % for 1 datapoint within 5 minutes | Low threshold so the controlled CPU test (Test 4) trips it quickly; an idle t3.micro sits well below 10 % |
-| Actions | Enabled | TODO: confirm the action (expected: notify SNS topic `cis260-security-alerts`) |
+| Actions | Enabled | Verified 2026-10-22: "When alarm transitions to in alarm, send message to topic cis260-security-alerts" (`2026-10-22_46_test4-alarm-action.jpg`). Fired for real in TEST-04 (ALARM 23:58:15 UTC, action executed; OK 00:05:15). No OK notification is configured; recovery is visible in the alarm history |
 | State | Insufficient data at creation (22:11:08 UTC), then **OK** at 22:12:01 UTC | Insufficient data is normal until the first datapoints arrive; OK means the alarm is receiving data and CPU is below 10 % |
 
-## 13. EventBridge rules — in progress
+## 13. EventBridge rules
 
-Rules on the **default event bus in us-east-1**, with the SNS topic as their target. The event patterns and a line-by-line explanation are in [config/README.md](../config/README.md).
+Rules on the **default event bus in us-east-1**. The event patterns and a line-by-line explanation are in [config/README.md](../config/README.md).
 
-| Rule | Listens for | Scope | Status |
-|---|---|---|---|
-| `cis260-ec2-api-changes` | `StopInstances` / `StartInstances` API calls recorded by CloudTrail | Only `cis260-target` | Created and enabled 2026-10-02, 4:24 PM CDT |
-| `cis260-sg-changes` | `AuthorizeSecurityGroupIngress` / `RevokeSecurityGroupIngress` API calls recorded by CloudTrail | Only `cis260-target-sg` | Created and enabled 2026-10-02, 5:26 PM CDT |
+| Rule | Listens for | Scope | Target | Status |
+|---|---|---|---|---|
+| `cis260-ec2-api-changes` | `StopInstances` / `StartInstances` API calls recorded by CloudTrail | Only `cis260-target` | SNS (one-line alert) | ✅ Created and enabled 2026-10-02, 4:24 PM CDT |
+| `cis260-sg-changes` | `AuthorizeSecurityGroupIngress` / `RevokeSecurityGroupIngress` API calls recorded by CloudTrail | Only `cis260-target-sg` | SNS (one-line alert) | ✅ Created and enabled 2026-10-02, 5:26 PM CDT |
+| `cis260-lambda-sg` | Same pattern as `cis260-sg-changes` | Only `cis260-target-sg` | Lambda `cis260-incident-processor` | ✅ Created 2026-10-22, 7:12 PM CDT (00:12:45 UTC) |
+| `cis260-lambda-ec2` | Same pattern as `cis260-ec2-api-changes` | Only `cis260-target` | Lambda | ✅ Created 2026-10-22, 7:12 PM CDT (00:12:45 UTC) |
+| `cis260-monitoring-integrity` | `DisableRule` / `EnableRule` | Only rule `cis260-sg-changes` | Lambda | ✅ Created 2026-10-22, 7:19 PM CDT (00:19:38 UTC), the security improvement |
+| `cis260-s3-control` | `PutBucketVersioning` | Only bucket `cis260-s3-control-test-jbanks` | Lambda | ✅ Created 2026-10-22, 7:21 PM CDT (TEST-05) |
+
+The SNS targets use the settings below. The Lambda targets use **Matched events** (the function needs the full event) and are allowed to invoke the function by its resource-based policy, which the console adds when the rule is saved.
 
 | Target setting | Value | Why |
 |---|---|---|
@@ -140,3 +153,29 @@ Rules on the **default event bus in us-east-1**, with the SNS topic as their tar
 | Input | Originally **Matched event** (raw JSON); changed to an **Input transformer** — one readable sentence (ISSUE-03, D-11) | The email states what happened, to which resource, who, when, and from where |
 | Execution role | LabRole | Learner Lab doesn't allow creating a dedicated role; LabRole is allowed to publish to SNS |
 | Dead-letter queue | None | Not needed at lab scale; failed deliveries show up as `FailedInvocations` in rule monitoring |
+
+## 14. Lambda function — `cis260-incident-processor` (deployed 2026-10-22, 00:10:47 UTC)
+
+Code, tests, and deploy steps: [lambda/README.md](../lambda/README.md). Every line explained: [lambda-line-by-line.md](lambda-line-by-line.md).
+
+| Setting | Value | Why |
+|---|---|---|
+| Runtime | Python 3.12 (or the newest Python the console offers) | `boto3` is built in; nothing to package |
+| Handler | `lambda_function.lambda_handler` | File name + function name |
+| Memory / timeout | 128 MB / 10 seconds | One S3 write and one SNS publish take well under a second |
+| Execution role | LabRole | Learner Lab blocks creating roles; the least-privilege policy it *should* have is in [config/iam/](../config/iam/) ([least-privilege.md](least-privilege.md)) |
+| VPC | Not attached | Only calls the S3 and SNS public endpoints; attaching it would need a NAT gateway or endpoints (D-15) |
+| Environment variables | `LAB_ACCOUNT_ID`, `TARGET_GROUP_ID`, `TARGET_INSTANCE_ID`, `MONITORED_RULE_NAME`, `TEST_BUCKET_NAME`, `INCIDENT_BUCKET`, `SNS_TOPIC_ARN` | No IDs hard-coded in the code |
+| Triggers | The four Lambda-target rules in section 13 | — |
+
+## 15. S3 incident bucket — `cis260-incident-records-jbanks` (created 2026-10-22, 00:09:18 UTC)
+
+Same protections as the CloudTrail bucket: Block all public access **on**, Bucket owner enforced, **SSE-S3**, **versioning on**. No bucket policy is needed: the function writes with its execution role. Records are stored as `incidents/<YYYY-MM-DD>/<eventName>-<CloudTrail eventID>.json` (D-14).
+
+## 16. Temporary resources for tests
+
+| Resource | Test | Settings | Removed |
+|---|---|---|---|
+| `cis260-test-client` (EC2, `i-0a86e4bcc5db5a721`, 10.26.1.241) | TEST-03 | t3.micro, Amazon Linux 2023, project subnet, public IPv4 for Session Manager only, LabInstanceProfile, IMDSv2 required, Standard CPU credits, encrypted root volume, no key pair | ✅ Launched 23:53:05 UTC, terminated 00:06:11 UTC |
+| `cis260-test-client-sg` (`sg-0551ab694cd8f8633`) | TEST-03 | No inbound; outbound 443 to 0.0.0.0/0 and 8080 to `cis260-target-sg` only | ✅ Deleted after the client was terminated |
+| `cis260-s3-control-test-jbanks` (S3) | TEST-05 | Empty, private, SSE-S3; versioning turned on during the test (00:22:18 UTC) | Kept until grading, then deleted |

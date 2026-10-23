@@ -1,0 +1,44 @@
+{
+  "version": "0",
+  "id": "11111111-2222-3333-4444-555555555503",
+  "detail-type": "AWS API Call via CloudTrail",
+  "source": "aws.ec2",
+  "account": "235317051044",
+  "time": "2026-10-22T18:10:00Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "eventVersion": "1.10",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::235317051044:assumed-role/voclabs/user0000000=Synthetic_Test"
+    },
+    "eventTime": "2026-10-22T18:10:00Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "StopInstances",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "203.0.113.10",
+    "userAgent": "AWS Internal",
+    "requestParameters": {
+      "instancesSet": { "items": [ { "instanceId": "i-085a300c3d2a60c75" } ] },
+      "force": false
+    },
+    "responseElements": {
+      "instancesSet": {
+        "items": [
+          {
+            "instanceId": "i-085a300c3d2a60c75",
+            "currentState": { "code": 64, "name": "stopping" },
+            "previousState": { "code": 16, "name": "running" }
+          }
+        ]
+      }
+    },
+    "eventID": "synthetic-0003-ec2-stop",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "235317051044",
+    "eventCategory": "Management"
+  }
+}

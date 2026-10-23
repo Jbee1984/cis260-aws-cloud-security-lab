@@ -58,3 +58,35 @@ The public address is reachable, but with no inbound rules the security group dr
 **Decision:** each rule target uses an EventBridge input transformer instead of forwarding the raw event.
 **Why:** the raw JSON alerts were accurate but slow to read. A one-line alert (what, which resource, who, when, from where) lets anyone triage in seconds; the complete record stays in CloudTrail and the S3 evidence bucket.
 **Alternative considered:** a Lambda function to format the message — rejected because the transformer needs no code and nothing extra to secure or pay for.
+
+## D-12 — Lambda records evidence; it does not fix things automatically
+**Decision (2026-10-22):** add one small Python Lambda function, `cis260-incident-processor`. It checks that an event belongs to the lab, saves the full event to S3 as a named incident record, and emails a readable summary. It never changes, stops, or deletes anything.
+**Why:** the one-line alerts (D-11) are good for noticing a change, but they leave no case record that links the email to the exact CloudTrail event. The function adds that record, a second scope check in code, and FAILED-versus-succeeded reporting for denied calls.
+**Alternative rejected: automatic revocation** (a function that removes any new inbound rule by itself). It can't tell an approved change from a malicious one, could break a legitimate change, and is much harder to test safely. For this lab, a person reviews the evidence and makes the fix, and the fix is retested.
+**Still true from D-11:** formatting alone didn't justify code; the input transformer still formats the original alerts.
+
+## D-13 — Monitoring integrity is the before/after security improvement
+**Decision:** the improvement is a new rule that alerts when the security-group alert rule is disabled or enabled ([control-improvement.md](control-improvement.md)).
+**Why:** turning off alerts before making a change is a common attacker step. Before the change, disabling `cis260-sg-changes` produced no alert at all; it was only recorded in CloudTrail. The improvement is small, safe to test (disable, then enable right away), and gives clear before/after evidence.
+
+## D-14 — Separate private bucket for incident records
+**Decision:** incident records go to `cis260-incident-records-jbanks`, not into the CloudTrail bucket.
+**Why:** the CloudTrail bucket's policy only lets CloudTrail write, and only for my trail (D-02). Keeping the function's records in their own bucket leaves that policy untouched and separates raw logs (written by AWS) from case records (written by my code). Same protections: Block Public Access, SSE-S3, versioning.
+
+## D-15 — Lambda outside the VPC
+**Decision:** the function is not attached to the VPC.
+**Why:** it only calls the S3 and SNS public endpoints. Attaching it to a VPC subnet would need a NAT gateway (about $1/day) or VPC endpoints for it to reach those services (D-04), and it gains nothing.
+
+## D-16 — Separate Lambda rules; the original alert rules stay
+**Decision:** new rules (`cis260-lambda-sg`, `cis260-lambda-ec2`) send events to the function. The original SNS rules are not changed.
+**Why:** if the function fails, the original one-line alerts still arrive (a rollback path that is already working). It also keeps the integrity test independent: disabling `cis260-sg-changes` doesn't stop `cis260-lambda-sg` from recording security-group changes. The cost is two emails per change during testing, which is expected and documented.
+
+## D-17 — AWS CloudShell and the CLI for the final tests
+**Decision (2026-10-22):** the final-phase tests and the Lambda deployment were run as AWS CLI commands in **AWS CloudShell**, a browser terminal that uses my console sign-in. The servers were reached with Session Manager, and the console was used where a picture shows the result better (the CloudWatch alarm graph and history).
+**Why:**
+- Every command prints its own UTC time, so each step can be matched to CloudTrail.
+- The exact commands are kept in the repository, so anyone can repeat the build ([lambda/README.md](../lambda/README.md#what-was-actually-run-2026-10-22)).
+- CloudShell needs no access keys on my PC.
+- Each API call is still recorded by CloudTrail like a console click.
+
+**Trade-off:** fewer console screenshots. The CLI output screenshots show the same facts with timestamps.

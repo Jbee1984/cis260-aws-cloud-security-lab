@@ -1,0 +1,29 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "WriteIncidentRecordsOnly",
+      "Effect": "Allow",
+      "Action": "s3:PutObject",
+      "Resource": "arn:aws:s3:::cis260-incident-records-jbanks/incidents/*"
+    },
+    {
+      "Sid": "PublishToTheAlertTopicOnly",
+      "Effect": "Allow",
+      "Action": "sns:Publish",
+      "Resource": "arn:aws:sns:us-east-1:235317051044:cis260-security-alerts"
+    },
+    {
+      "Sid": "CreateItsOwnLogGroup",
+      "Effect": "Allow",
+      "Action": "logs:CreateLogGroup",
+      "Resource": "arn:aws:logs:us-east-1:235317051044:log-group:/aws/lambda/cis260-incident-processor"
+    },
+    {
+      "Sid": "WriteItsOwnLogs",
+      "Effect": "Allow",
+      "Action": ["logs:CreateLogStream", "logs:PutLogEvents"],
+      "Resource": "arn:aws:logs:us-east-1:235317051044:log-group:/aws/lambda/cis260-incident-processor:*"
+    }
+  ]
+}

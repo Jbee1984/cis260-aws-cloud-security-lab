@@ -1,0 +1,36 @@
+{
+  "version": "0",
+  "id": "11111111-2222-3333-4444-555555555504",
+  "detail-type": "AWS API Call via CloudTrail",
+  "source": "aws.ec2",
+  "account": "235317051044",
+  "time": "2026-10-22T18:15:00Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "eventVersion": "1.10",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::235317051044:assumed-role/voclabs/user0000000=Synthetic_Test"
+    },
+    "eventTime": "2026-10-22T18:15:00Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "StopInstances",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "203.0.113.10",
+    "userAgent": "AWS Internal",
+    "errorCode": "Client.UnauthorizedOperation",
+    "errorMessage": "You are not authorized to perform this operation.",
+    "requestParameters": {
+      "instancesSet": { "items": [ { "instanceId": "i-085a300c3d2a60c75" } ] },
+      "force": false
+    },
+    "responseElements": null,
+    "eventID": "synthetic-0004-ec2-stop-denied",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "235317051044",
+    "eventCategory": "Management"
+  }
+}

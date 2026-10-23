@@ -130,3 +130,71 @@ Creating, changing, disabling, or deleting a rule is an API call too (`PutRule`,
 4. **Publishing permission.** The rule publishes using LabRole — LabRole needs `sns:Publish` on the topic. Also check the topic's **Access policy**.
 5. **Topic encryption.** If the topic is encrypted with the AWS-managed key `aws/sns`, EventBridge cannot publish to it.
 6. **Pattern typos.** Values are case-sensitive (`StopInstances`, `AuthorizeSecurityGroupIngress`). Use **Test pattern** in the rule editor with a sample event.
+
+---
+
+## Final-phase patterns (planned rules, targets = Lambda `cis260-incident-processor`)
+
+The two Lambda rules reuse the patterns above unchanged: `cis260-lambda-sg` uses [`eventbridge-sg-change-rule.json`](eventbridge-sg-change-rule.json) and `cis260-lambda-ec2` uses [`eventbridge-ec2-api-changes.json`](eventbridge-ec2-api-changes.json). Two new patterns:
+
+### `cis260-monitoring-integrity`: someone switched an alert rule off or on
+
+File: [`eventbridge-monitoring-integrity.json`](eventbridge-monitoring-integrity.json)
+
+```json
+{
+  "source": ["aws.events"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["events.amazonaws.com"],
+    "eventName": ["DisableRule", "EnableRule"],
+    "requestParameters": {
+      "name": ["cis260-sg-changes"]
+    }
+  }
+}
+```
+
+| Line | Meaning |
+|---|---|
+| `"source": ["aws.events"]` | The event is about EventBridge itself |
+| `"eventSource": ["events.amazonaws.com"]` | The API call went to EventBridge |
+| `"eventName": ["DisableRule", "EnableRule"]` | Switching a rule off, or back on |
+| `"requestParameters" → "name"` | Only when the rule being switched is my security-group alert rule |
+
+Why: see [control-improvement.md](../docs/control-improvement.md).
+
+### `cis260-s3-control`: versioning changed on the empty test bucket (supplemental)
+
+File: [`eventbridge-s3-control.json`](eventbridge-s3-control.json)
+
+```json
+{
+  "source": ["aws.s3"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["s3.amazonaws.com"],
+    "eventName": ["PutBucketVersioning"],
+    "requestParameters": {
+      "bucketName": ["cis260-s3-control-test-jbanks"]
+    }
+  }
+}
+```
+
+`PutBucketVersioning` is a bucket-level (management) API call, so the existing management trail records it. No S3 data events are needed.
+
+### Checking the patterns
+
+`python -m unittest discover -s lambda -v` includes 5 pattern tests ([`lambda/test_event_patterns.py`](../lambda/test_event_patterns.py)) that check each pattern matches its synthetic event and nothing else. In the console, the rule editor's **Test pattern** button is the final check.
+
+## IAM reference policies — [`iam/`](iam/)
+
+What LabRole *should* be split into in a real account (Learner Lab blocks creating roles, so these are documented, not deployed). Explained in [docs/least-privilege.md](../docs/least-privilege.md).
+
+| File | For | Allows only |
+|---|---|---|
+| [`iam/lambda-incident-processor-policy.json`](iam/lambda-incident-processor-policy.json) | Lambda execution role | `s3:PutObject` on `cis260-incident-records-jbanks/incidents/*`, `sns:Publish` on the alert topic, writing its own logs |
+| [`iam/lambda-trust-policy.json`](iam/lambda-trust-policy.json) | Who may assume that role | `lambda.amazonaws.com`, from my account only |
+| [`iam/eventbridge-to-sns-policy.json`](iam/eventbridge-to-sns-policy.json) | Alert rules' target role | `sns:Publish` on `cis260-security-alerts` |
+| (AWS managed) `AmazonSSMManagedInstanceCore` | The EC2 instance's role | What the SSM agent needs for Session Manager, nothing else |

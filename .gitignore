@@ -1,0 +1,10 @@
+# Never commit raw evidence or secrets — only redacted copies go in evidence/
+*.json.gz
+*CloudTrail_us-east-1_*.json
+*.pem
+*.key
+*.csv
+credentials
+.aws/
+.env
+Screenshots-original/

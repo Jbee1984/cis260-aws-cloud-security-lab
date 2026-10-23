@@ -14,10 +14,10 @@ Every real problem met while building the lab. Fields follow the issue format pr
 | Expected behavior | The CloudTrail console opens normally and a trail can be created |
 | Actual behavior | A yellow banner at the top of the CloudTrail landing page |
 | Exact error message | `AccessDeniedException` — "You don't have permissions to access this resource." |
-| Diagnostic steps | TODO (Jeremiah): what you checked or clicked after seeing the banner |
-| Sources consulted | TODO |
+| Diagnostic steps | Not written down at the time. The evidence shows I kept going to **Create trail**, the trail was created 8 minutes later, and its first log file reached S3 3 minutes after that. |
+| Sources consulted | AWS Academy Learner Lab Readme (service restrictions); later, the `errorCode` fields in my own first CloudTrail log file |
 | Root cause | **Likely:** the Learner Lab role (`voclabs`) denies some API calls that AWS console pages make in the background. Supporting evidence: my first CloudTrail log file (17:40–17:42 UTC) contains **4 records with `errorCode: AccessDenied`** for other console background calls (`notifications.amazonaws.com` and `uxc.amazonaws.com`), while the calls needed for the project succeeded. |
-| Change made | TODO (Jeremiah): what you did to continue |
+| Change made | None to permissions. I continued creating the trail and did not try to change the lab's protected IAM settings. |
 | Verification test | Trail `cis260-management-trail` shows status **Logging** (12:39 PM CDT); first log file delivered to S3 (12:42 PM CDT); a record from that file read successfully |
 | Time spent | About 10 minutes (12:31 → ~12:39 PM CDT) |
 | Lesson learned | An AccessDenied banner doesn't always mean the task is blocked. Check whether the resource you actually need was created, and use CloudTrail's `errorCode` field to see exactly which call was denied. |
@@ -39,9 +39,10 @@ Of the 7 records in the first log file, 4 had `errorCode: AccessDenied`. CloudTr
 | Expected behavior | Session stays active until the work is finished |
 | Actual behavior | At 3:40 PM the Learner Lab page showed a red status dot and timer **0:00** — the session had ended |
 | Root cause | Learner Lab sessions last 4 hours. CloudTrail shows this session's role credentials were created at 15:28:51 UTC (10:28 AM CDT), so it ran out at about 2:28 PM. When a session ends, running EC2 instances are stopped. |
-| Change made | TODO: click **Start Lab**, wait for the green dot, and confirm `cis260-target`'s state before continuing |
-| Verification test | TODO |
+| Change made | Clicked **Start Lab** to begin a new session. The exact time wasn't recorded; work resumed by 4:24 PM CDT. |
+| Verification test | The new session worked: the EC2 alert rule was created at 4:24 PM and the TEST-02 `StopInstances` call succeeded at 4:52 PM. The instance's state at the start of the new session wasn't recorded. |
 | Lesson learned | Check the session timer before starting a multi-step test, and restart the session first if less than an hour is left. The automatic stop is itself a stop request — with rule `cis260-ec2-api-changes` in place, an unplanned stop like this should now produce an alert, and CloudTrail shows which identity stopped the instance. |
+| Follow-up (2026-10-22) | **Confirmed for starts.** When I clicked Start Lab, CloudTrail recorded `StartInstances` for `cis260-target` at 23:43:48 UTC by **`sys4246727`**, the lab's own automation identity, not my `user4744416=Jeremiah_Banks`. The `cis260-ec2-api-changes` rule emailed it. So an analyst can tell lab automation from a person by the `userIdentity` in the alert. |
 
 ---
 

@@ -1,0 +1,36 @@
+{
+  "version": "0",
+  "id": "11111111-2222-3333-4444-555555555502",
+  "detail-type": "AWS API Call via CloudTrail",
+  "source": "aws.ec2",
+  "account": "235317051044",
+  "time": "2026-10-22T18:05:00Z",
+  "region": "us-east-1",
+  "resources": [],
+  "detail": {
+    "eventVersion": "1.10",
+    "userIdentity": {
+      "type": "AssumedRole",
+      "arn": "arn:aws:sts::235317051044:assumed-role/voclabs/user0000000=Synthetic_Test"
+    },
+    "eventTime": "2026-10-22T18:05:00Z",
+    "eventSource": "ec2.amazonaws.com",
+    "eventName": "AuthorizeSecurityGroupIngress",
+    "awsRegion": "us-east-1",
+    "sourceIPAddress": "203.0.113.10",
+    "userAgent": "AWS Internal",
+    "requestParameters": {
+      "groupId": "sg-0000000000000000a",
+      "ipPermissions": {
+        "items": [ { "ipProtocol": "tcp", "fromPort": 22, "toPort": 22, "ipRanges": { "items": [ { "cidrIp": "0.0.0.0/0" } ] } } ]
+      }
+    },
+    "responseElements": { "_return": true },
+    "eventID": "synthetic-0002-sg-other-group",
+    "readOnly": false,
+    "eventType": "AwsApiCall",
+    "managementEvent": true,
+    "recipientAccountId": "235317051044",
+    "eventCategory": "Management"
+  }
+}

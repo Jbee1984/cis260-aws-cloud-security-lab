@@ -1,0 +1,34 @@
+Offline tests for lambda/lambda_function.py and the EventBridge patterns in config/
+Run: 2026-10-22 17:50:27 CDT on my Windows PC, Python 3.12.10
+Command: python -m unittest discover -s lambda -v   (from the repository root)
+These tests use fake S3/SNS clients and local JSON files: no AWS account, no network, no cost.
+They prove the code and patterns behave as designed. They do not prove the function is deployed in AWS.
+
+test_ec2_pattern (test_event_patterns.EventPatternTests.test_ec2_pattern) ... ok
+test_every_config_file_is_valid_json (test_event_patterns.EventPatternTests.test_every_config_file_is_valid_json) ... ok
+test_monitoring_integrity_pattern (test_event_patterns.EventPatternTests.test_monitoring_integrity_pattern) ... ok
+test_s3_control_pattern (test_event_patterns.EventPatternTests.test_s3_control_pattern) ... ok
+test_security_group_pattern (test_event_patterns.EventPatternTests.test_security_group_pattern) ... ok
+test_denied_call_is_reported_as_failed_not_as_a_change (test_lambda_function.IncidentProcessorTests.test_denied_call_is_reported_as_failed_not_as_a_change) ... ok
+test_disabling_the_monitored_alert_rule_is_recorded (test_lambda_function.IncidentProcessorTests.test_disabling_the_monitored_alert_rule_is_recorded) ... ok
+test_empty_instance_list_is_ignored (test_lambda_function.IncidentProcessorTests.test_empty_instance_list_is_ignored) ... ok
+test_enabling_the_monitored_alert_rule_is_recorded (test_lambda_function.IncidentProcessorTests.test_enabling_the_monitored_alert_rule_is_recorded) ... ok
+test_instance_stop_is_recorded (test_lambda_function.IncidentProcessorTests.test_instance_stop_is_recorded) ... ok
+test_missing_identity_and_ip_still_alerts_with_unknown (test_lambda_function.IncidentProcessorTests.test_missing_identity_and_ip_still_alerts_with_unknown) ... ok
+test_missing_request_parameters_is_ignored (test_lambda_function.IncidentProcessorTests.test_missing_request_parameters_is_ignored) ... ok
+test_other_account_is_ignored (test_lambda_function.IncidentProcessorTests.test_other_account_is_ignored) ... ok
+test_other_alert_rule_is_ignored (test_lambda_function.IncidentProcessorTests.test_other_alert_rule_is_ignored) ... ok
+test_other_instance_is_ignored (test_lambda_function.IncidentProcessorTests.test_other_instance_is_ignored) ... ok
+test_other_region_is_ignored (test_lambda_function.IncidentProcessorTests.test_other_region_is_ignored) ... ok
+test_other_security_group_is_ignored (test_lambda_function.IncidentProcessorTests.test_other_security_group_is_ignored) ... ok
+test_same_event_twice_reuses_the_same_record_name (test_lambda_function.IncidentProcessorTests.test_same_event_twice_reuses_the_same_record_name) ... ok
+test_saved_record_is_the_complete_unchanged_event (test_lambda_function.IncidentProcessorTests.test_saved_record_is_the_complete_unchanged_event) ... ok
+test_security_group_change_is_recorded_and_emailed (test_lambda_function.IncidentProcessorTests.test_security_group_change_is_recorded_and_emailed) ... ok
+test_storage_failure_raises_and_sends_no_email (test_lambda_function.IncidentProcessorTests.test_storage_failure_raises_and_sends_no_email) ... ok
+test_unwatched_api_call_is_ignored (test_lambda_function.IncidentProcessorTests.test_unwatched_api_call_is_ignored) ... ok
+test_versioning_change_on_test_bucket_is_recorded (test_lambda_function.IncidentProcessorTests.test_versioning_change_on_test_bucket_is_recorded) ... ok
+
+----------------------------------------------------------------------
+Ran 23 tests in 0.005s
+
+OK
