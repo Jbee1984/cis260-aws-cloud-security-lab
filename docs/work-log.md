@@ -58,8 +58,9 @@ Screenshot names above are short for `evidence/screenshots/2026-10-22_<nn>_….j
 - At first the Flow Log ACCEPT for the blocked attempt looked wrong. It was the client's own interface; analysis is in [IR-03](../incidents/IR-03-blocked-vs-allowed-traffic.md).
 - CloudTrail Event history showed new events a few minutes late, while EventBridge and the Lambda reacted in 4–20 seconds.
 
-**Budget:** about 42 minutes of t3.micro for the target and 13 for the client, ≈ $0.02. Read the Learner Lab "Used $ of $50" before ending the lab ([cost log](cost-log.md)).
-**Next task:** record the demo; upload the repo; final paper fill-ins; final deck.
+**Budget:** about 42 minutes of t3.micro for the target and 13 for the client, ≈ $0.02. After the lab ended, the Learner Lab showed **Used $2.4 of $50** (11:30 PM CDT; [cost log](cost-log.md), `2026-10-22_72`). That is far under the $30 ceiling.
+**After the session (11:30 PM):** pushed the repo to GitHub, read the credit, and saved three alert emails as evidence (`2026-10-22_73` to `_75`).
+**Next task:** record the demo; final deck.
 
 ---
 
