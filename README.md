@@ -180,4 +180,4 @@ Expected: `Ran 23 tests ... OK` ([saved output from 2026-10-22](evidence/logs/20
 
 ## Scope and boundaries
 
-All testing stays inside my Learner Lab account and uses synthetic data only. No denial-of-service, malware, phishing, scanning of systems I don't own, or attacks against AWS infrastructure. AWS access for this project was authorized by Professor Gustavo Alatta of Wilbur Wright College.
+All testing stays inside my Learner Lab account and uses synthetic data only. No denial-of-service, malware, phishing, scanning of systems I don't own, or attacks against AWS infrastructure.
