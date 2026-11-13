@@ -16,6 +16,7 @@ The Learner Lab cost display can lag, so each session records both an estimate a
 | EventBridge (AWS service events) | $0 | Events from AWS services on the default bus are free |
 
 **While the instance runs:** ≈ $0.0154/hour ≈ **$0.37/day**.
+**While the instance is stopped:** the 15 GiB root volume still costs ≈ $1.20/month ≈ **$0.04/day**, plus ≈ $0.10/month for the CloudWatch alarm. The credit figure keeps rising slowly between sessions for that reason.
 
 ## Session journal
 

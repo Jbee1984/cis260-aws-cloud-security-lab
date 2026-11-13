@@ -135,7 +135,7 @@ Expected: `Ran 23 tests ... OK` ([saved output from 2026-10-22](evidence/logs/20
 - **What would you change about LabRole?** Split it into three least-privilege roles. The policies are written in [config/iam/](config/iam/) and explained in [docs/least-privilege.md](docs/least-privilege.md).
 - **Why Session Manager instead of SSH?** No inbound port, no keys, and every session is in CloudTrail ([D-01](docs/decisions.md#d-01--session-manager-instead-of-ssh)).
 - **Why no NAT gateway?** About $1.08/day versus $0.12/day for a public IPv4 address, and inbound stays closed either way ([D-04](docs/decisions.md#d-04--internet-gateway-and-public-ip-instead-of-a-nat-gateway)).
-- **What does it cost?** About $2.40 of the $50 credit for the whole project ([docs/cost-log.md](docs/cost-log.md)).
+- **What does it cost?** The Learner Lab showed $2.40 of the $50 credit used after the final test session on October 22, and that figure includes earlier work in the same lab account. A stopped server still pays for its disk, about $0.04 a day ([docs/cost-log.md](docs/cost-log.md)).
 - **What does it not detect?** Malware, denial of service, or real customer data were never in scope. The integrity rule watches one alert rule; `DeleteRule`, `RemoveTargets`, and CloudTrail `StopLogging` are next steps ([docs/control-improvement.md](docs/control-improvement.md#what-it-does-not-cover-residual-risk)).
 - **Are the screenshots edited?** No. They are the unredacted originals, each with its SHA-256 hash in [evidence/manifest.md](evidence/manifest.md).
 
