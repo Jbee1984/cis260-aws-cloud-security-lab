@@ -47,7 +47,9 @@ File: [`eventbridge-ec2-api-changes.json`](eventbridge-ec2-api-changes.json)
 
 **Why the CloudTrail version:** the alert *is* the API record, so the email already contains `userIdentity` (who asked), `eventTime` (when), and `sourceIPAddress` (from where). An alternative is EC2's own "EC2 Instance State-change Notification" event, which arrives without CloudTrail but doesn't say who caused the change.
 
-**Side benefit (to verify):** Learner Lab stops running instances when a session's 4-hour timer runs out. That automatic stop should also be a `StopInstances` call, so this rule should alert on it too — and CloudTrail would show which identity made it. Check the next time a session times out.
+**Side benefit:** the rule also sees what Learner Lab itself does to the instance.
+- **Confirmed for starts (2026-10-22):** clicking Start Lab produced a `StartInstances` call by the lab's automation identity `sys4246727` at 23:43:48 UTC, and this rule emailed it ([ISSUE-02](../docs/issues.md#issue-02--learner-lab-session-expired-during-the-build)).
+- **Not yet confirmed for stops:** Learner Lab stops running instances when a session's 4-hour timer runs out. That automatic stop should also be a `StopInstances` call, so this rule should alert on it too. I haven't captured evidence of a timer stop since the rule was created, so this stays unconfirmed.
 
 ## Rule — `cis260-sg-changes` (security-group inbound changes)
 
@@ -133,9 +135,9 @@ Creating, changing, disabling, or deleting a rule is an API call too (`PutRule`,
 
 ---
 
-## Final-phase patterns (planned rules, targets = Lambda `cis260-incident-processor`)
+## Final-phase patterns (deployed 2026-10-22, targets = Lambda `cis260-incident-processor`)
 
-The two Lambda rules reuse the patterns above unchanged: `cis260-lambda-sg` uses [`eventbridge-sg-change-rule.json`](eventbridge-sg-change-rule.json) and `cis260-lambda-ec2` uses [`eventbridge-ec2-api-changes.json`](eventbridge-ec2-api-changes.json). Two new patterns:
+All four Lambda-target rules were created and tested on 2026-10-22 ([test plan](../docs/test-plan.md), TEST-05 to TEST-07). The two Lambda rules reuse the patterns above unchanged: `cis260-lambda-sg` uses [`eventbridge-sg-change-rule.json`](eventbridge-sg-change-rule.json) and `cis260-lambda-ec2` uses [`eventbridge-ec2-api-changes.json`](eventbridge-ec2-api-changes.json). Two new patterns:
 
 ### `cis260-monitoring-integrity`: someone switched an alert rule off or on
 

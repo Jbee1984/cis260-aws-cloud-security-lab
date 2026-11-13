@@ -60,3 +60,20 @@ Of the 7 records in the first log file, 4 had `errorCode: AccessDenied`. CloudTr
 | Verification test | **Verified for `cis260-sg-changes`:** a new AuthorizeSecurityGroupIngress at 2026-10-03 00:22:11 UTC (7:22 PM CDT Oct 2) produced a one-sentence alert — "CIS260 ALERT: AuthorizeSecurityGroupIngress changed an inbound rule (port 8080) on security group sg-06e94ae52286f9f2e by … at … (UTC) from IP …"; the removal at 00:23:12 UTC (7:23 PM CDT) produced the matching readable RevokeSecurityGroupIngress alert. **Verified for `cis260-ec2-api-changes`:** the end-of-day stop at 00:29:44 UTC (7:29 PM CDT) produced "CIS260 ALERT: StopInstances was requested for EC2 instance i-085a300c3d2a60c75 by … at … (UTC) from IP …". Both rules now send readable alerts. |
 | Evidence | Before: `2026-10-02_16_eventbridge-sns-target.png` (Input: Matched event), alert emails `_30`–`_33`. After: `2026-10-02_34_eventbridge-ec2-transformer.png`, `2026-10-02_35_eventbridge-sg-transformer.png`, readable alerts `2026-10-02_36_readable-alert-sg-authorize.png`, `2026-10-02_37_readable-alert-sg-revoke.png`, `2026-10-02_38_readable-alert-ec2-stop.png`, `2026-10-02_39_readable-alert-ec2-start.png` |
 | Lesson learned | Detection is only useful if the person receiving the alert can act on it quickly. The full JSON is still kept in CloudTrail for the investigation. |
+
+---
+
+## ISSUE-04 — A published evidence file didn't match its manifest hash  ✅ Fixed and verified
+
+| Field | Entry |
+|---|---|
+| Date / time | 2026-11-13, during the documentation pass (no AWS work) |
+| Component | GitHub repository (`evidence/logs/`) and Git's line-ending conversion |
+| Task being attempted | Re-checking every published evidence file against the SHA-256 hashes in the [evidence manifest](../evidence/manifest.md) |
+| Expected behavior | Every published file has the hash recorded in the manifest |
+| Actual behavior | All 76 screenshots and the CloudTrail sample matched. The test-output log `2026-10-22_lambda-offline-tests.txt` did not: the copy stored on GitHub hashed to `2fd1e22d…`, while the manifest and my original file say `b5d177d4…` |
+| Root cause | Git on my PC converts Windows line endings in text files when it commits (`core.autocrlf`). The log had mixed line endings, so Git stored a slightly different file than the one I had hashed. Images are binary, so they weren't affected |
+| Change made | Added a `.gitattributes` file with `evidence/** -text`, which tells Git to store and check out everything under `evidence/` byte-for-byte, and committed the log again |
+| Verification test | Hashed the file as stored in the repository (`git cat-file blob`): `b5d177d4…`, the manifest value. Re-ran the manifest check: 78 of 78 files match |
+| Related cleanup | 13 manifest descriptions still said parts of the October 2 screenshots were hidden. That was true of the redacted copies used before the midterm; the published files have been the unredacted originals since October 9, so the descriptions were corrected |
+| Lesson learned | A hash only proves integrity if the published bytes are the bytes that were hashed. Check the published copy, not only the local one |

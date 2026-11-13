@@ -8,3 +8,7 @@ credentials
 .aws/
 .env
 Screenshots-original/
+
+# Python bytecode created when the tests run
+__pycache__/
+*.pyc

@@ -11,7 +11,7 @@ The lab runs in an AWS Academy Learner Lab account ($50 total credit, restricted
 
 ---
 
-## Current status — October 23, 2026
+## Current status — November 13, 2026
 
 | Component | Status | Evidence |
 |---|---|---|
@@ -92,6 +92,53 @@ python -m unittest discover -s lambda -v
 
 Expected: `Ran 23 tests ... OK` ([saved output from 2026-10-22](evidence/logs/2026-10-22_lambda-offline-tests.txt)). Deploy steps: [lambda/README.md](lambda/README.md). Every line explained: [docs/lambda-line-by-line.md](docs/lambda-line-by-line.md).
 
+## Quickstart
+
+1. **Read the results first:** [docs/test-plan.md](docs/test-plan.md) (all seven tests with times and evidence), then one incident record, for example [IR-05](incidents/IR-05-alert-rule-disabled.md).
+2. **Run the code's tests on your own computer** (no AWS account needed):
+   ```
+   git clone https://github.com/Jbee1984/cis260-aws-cloud-security-lab.git
+   cd cis260-aws-cloud-security-lab
+   python -m unittest discover -s lambda -v
+   ```
+3. **Rebuild the lab in your own AWS account:** follow [docs/configuration.md](docs/configuration.md) section by section (every setting and the reason for it), then deploy the function with [lambda/README.md](lambda/README.md). The event patterns are in [config/](config/README.md).
+4. **Check the evidence:** every screenshot is listed with its SHA-256 hash in [evidence/manifest.md](evidence/manifest.md).
+
+## Setting up a workspace
+
+| Need | What to use |
+|---|---|
+| Run the offline tests | Python 3.10 or newer (written and run on 3.12). Nothing to install: the tests replace `boto3` with fakes. On Windows, `py -m unittest discover -s lambda -v` |
+| Deploy the function | An AWS account in **us-east-1**. In AWS Academy Learner Lab, use **LabRole** as the execution role; in a normal account, create the three roles in [docs/least-privilege.md](docs/least-privilege.md) instead |
+| Run the tests in AWS | **AWS CloudShell** (AWS CLI in the browser, no keys on your PC) and **Session Manager** for the server. The exact commands used are in [lambda/README.md](lambda/README.md#what-was-actually-run-2026-10-22) |
+| Budget | About $0.37/day while the server runs; stop it when you finish. Costs are tracked in [docs/cost-log.md](docs/cost-log.md) |
+| End of a session | [docs/cleanup-checklist.md](docs/cleanup-checklist.md) |
+
+## Troubleshooting
+
+| Symptom | Where to look |
+|---|---|
+| No alert email arrives | [config/README.md → "If an email does not arrive"](config/README.md#if-an-email-does-not-arrive): wait, check the Region, rule monitoring, LabRole's `sns:Publish`, topic encryption, pattern typos |
+| CloudTrail console shows `AccessDeniedException` | The trail can still work. Check for a delivered log file, not the banner: [ISSUE-01](docs/issues.md#issue-01--cloudtrail-console-accessdeniedexception) |
+| The server stopped by itself | The 4-hour Learner Lab session ended. Start a new session; the automatic stop is a `StopInstances` call by the lab's `sys…` identity: [ISSUE-02](docs/issues.md#issue-02--learner-lab-session-expired-during-the-build) |
+| Alert emails are raw JSON | Use an input transformer on the rule target: [ISSUE-03](docs/issues.md#issue-03--alert-emails-were-raw-json-and-hard-to-read---fixed-and-verified) |
+| A blocked connection shows `ACCEPT` in Flow Logs | You are reading the sender's interface. Filter on the target's interface ID: [IR-03](incidents/IR-03-blocked-vs-allowed-traffic.md#analysis-note-why-the-blocked-attempt-also-shows-an-accept) |
+| Flow-log or CloudTrail evidence is missing right after a test | Both arrive minutes later (flow-log files about every 5 minutes; Event history lags). EventBridge and the function react in seconds |
+| The function returns `"ignored"` | The scope check rejected the event: wrong account, Region, API call, or resource. The `reason` field says which: [docs/lambda-line-by-line.md](docs/lambda-line-by-line.md#step-1-scope-check-lines-4352) |
+| Two emails for one change | Expected while both the SNS rule and the Lambda rule are enabled ([D-16](docs/decisions.md#d-16--separate-lambda-rules-the-original-alert-rules-stay)) |
+| An evidence file's hash doesn't match the manifest | Git may have converted its line endings. This repository's `.gitattributes` prevents that for `evidence/`: [ISSUE-04](docs/issues.md#issue-04--a-published-evidence-file-didnt-match-its-manifest-hash---fixed-and-verified) |
+
+## FAQ
+
+- **Why a Lambda function when EventBridge can already email?** The email is a notification. The function adds a permanent case record named by the CloudTrail event ID, a second scope check, and FAILED-versus-succeeded reporting ([D-12](docs/decisions.md#d-12--lambda-records-evidence-it-does-not-fix-things-automatically)).
+- **Why doesn't it fix the problem automatically?** An automatic fix can't tell an approved change from a malicious one and could break a legitimate change. A person reviews the evidence, corrects, and retests.
+- **What would you change about LabRole?** Split it into three least-privilege roles. The policies are written in [config/iam/](config/iam/) and explained in [docs/least-privilege.md](docs/least-privilege.md).
+- **Why Session Manager instead of SSH?** No inbound port, no keys, and every session is in CloudTrail ([D-01](docs/decisions.md#d-01--session-manager-instead-of-ssh)).
+- **Why no NAT gateway?** About $1.08/day versus $0.12/day for a public IPv4 address, and inbound stays closed either way ([D-04](docs/decisions.md#d-04--internet-gateway-and-public-ip-instead-of-a-nat-gateway)).
+- **What does it cost?** About $2.40 of the $50 credit for the whole project ([docs/cost-log.md](docs/cost-log.md)).
+- **What does it not detect?** Malware, denial of service, or real customer data were never in scope. The integrity rule watches one alert rule; `DeleteRule`, `RemoveTargets`, and CloudTrail `StopLogging` are next steps ([docs/control-improvement.md](docs/control-improvement.md#what-it-does-not-cover-residual-risk)).
+- **Are the screenshots edited?** No. They are the unredacted originals, each with its SHA-256 hash in [evidence/manifest.md](evidence/manifest.md).
+
 ## Repository map
 
 | Path | What it holds |
@@ -113,7 +160,7 @@ Expected: `Ran 23 tests ... OK` ([saved output from 2026-10-22](evidence/logs/20
 
 ## What is deliberately *not* in this repository
 
-- No secret keys or passwords. The screenshots are published unredacted, so they show the Learner Lab account ID, source IP address, and lab user details (see [evidence/manifest.md](evidence/manifest.md)).
+- No secret keys, passwords, or session tokens. The screenshots are published unredacted, so they show the Learner Lab account ID, my source IP address, my lab user name and school email address, and the IDs of temporary access keys (the short-lived key IDs only, never a secret key) (see [evidence/manifest.md](evidence/manifest.md)).
 - No raw CloudTrail logs. Originals stay offline; only redacted samples are published.
 - No credentials of any kind. The Lambda function gets its permissions from its execution role, never from keys in code.
 
@@ -126,10 +173,11 @@ Expected: `Ran 23 tests ... OK` ([saved output from 2026-10-22](evidence/logs/20
 | Oct 9 | Midterm presentation | ✅ |
 | Oct 22 | Lambda incident processor, 23 offline tests, least-privilege policies, final test procedures | ✅ |
 | Oct 22 (evening) | TEST-03 to TEST-07 run and passed; Lambda deployed; incident records IR-03 to IR-05 | ✅ |
-| Nov 7 – 19 | Demo recording, final paper, final README pass | 📅 |
-| Nov 20 | Optional early final presentation | 📅 |
-| Dec 4 | Final paper and repository due before class | 📅 |
+| Nov 12 – 13 | README pass (quickstart, workspace setup, troubleshooting, FAQ); post-session evidence published | ✅ |
+| Before Dec 4 | Demo recording; final paper; final slides | 📅 |
+| Dec 4 | Final paper, repository, and slides due before class | 📅 |
+| Dec 4 and Dec 11 | Final presentations | 📅 |
 
 ## Scope and boundaries
 
-All testing stays inside my Learner Lab account and uses synthetic data only. No denial-of-service, malware, phishing, scanning of systems I don't own, or attacks against AWS infrastructure. AWS access for this project was authorized by Professor Gustavo Allata of Wilbur Wright College.
+All testing stays inside my Learner Lab account and uses synthetic data only. No denial-of-service, malware, phishing, scanning of systems I don't own, or attacks against AWS infrastructure. AWS access for this project was authorized by Professor Gustavo Alatta of Wilbur Wright College.

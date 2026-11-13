@@ -5,6 +5,25 @@ Each entry records the goal, what changed and why, evidence, problems, budget, a
 
 ---
 
+## 2026-11-12 to 11-13 (Thu–Fri) — Documentation pass and repository update (no AWS work)
+
+**Goal:** bring the repository up to date with everything from the final lab session and make the main page usable by someone who has never seen the project.
+
+| What I did | Why | Evidence |
+|---|---|---|
+| Published the post-session evidence: the Learner Lab credit screenshot and the three alert emails (`2026-10-22_72` to `_75`), with their hashes in the manifest, plus the cost-log and work-log updates | They were captured after the first push on October 22 | Commit `08d8b51` |
+| Added **Quickstart**, **Setting up a workspace**, **Troubleshooting**, and **FAQ** sections to the main README | The final-paper rubric asks for documentation on the main repository page; the troubleshooting rows come from this project's own issues | [README](../README.md) |
+| Cleaned up stale wording: the Oct 2 cost-log entry (instance state confirmed on Oct 22), the event-pattern notes (Lambda rules are deployed, not planned; Start Lab identity confirmed), and the timeline | The repository should describe the lab as it is now | [cost-log.md](cost-log.md), [config/README.md](../config/README.md) |
+| Re-checked all 78 evidence files against the manifest hashes. One log file's published copy didn't match; fixed with `.gitattributes` and verified. Corrected 13 descriptions that still said parts of the October 2 screenshots were hidden | The manifest has to describe exactly what is published | [ISSUE-04](issues.md#issue-04--a-published-evidence-file-didnt-match-its-manifest-hash---fixed-and-verified), [manifest](../evidence/manifest.md) |
+| Re-ran the offline tests: **23 passed, 0 failed**; checked every link in the Markdown files | Confirm nothing broke | `python -m unittest discover -s lambda -v` |
+
+**Problems:** [ISSUE-04](issues.md#issue-04--a-published-evidence-file-didnt-match-its-manifest-hash---fixed-and-verified) (a published log file's hash didn't match the manifest; fixed).
+**Budget:** no AWS resources were started. The target server has been stopped since 2026-10-22, 00:25:57 UTC.
+**Schedule note:** the final presentation dates are December 4 and December 11; the paper, repository, and slides are due December 4 before class.
+**Next task:** record the demo and link it from the README.
+
+---
+
 ## 2026-10-22 (Thu) — Lambda written and tested; evening lab session: Tests 3–7 all PASS
 
 **Goal:** write and test the final-phase code and procedures, then run every remaining test in one Learner Lab session.
